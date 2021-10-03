@@ -29,3 +29,16 @@ My program finished quickly with all heuristics up to a 7x7 maze. The null heuri
 
 
 ## Responses
+
+a) The starting state variable for a maze with k robots would look like this: (0, k0x, k0y, k1x, k1y, ..., (k - 2)x, (k - 2)y, (k - 1)x, (k - 1)y).
+There would be a single integer at the start of each state, denoting which robot is slated to move. After that, there would be 2k integers, alternating x and y coordinates for each robot.
+
+b) If n is the height and the width of the maze, and k is the number of robots, we would expect to see n<sup>2</sup> possible states for a single robot. For more than one rbot, the number of states would look like (n<sup>2</sup>)(n<sup>2</sup> - 1)...(2<sup>2</sup>)(1<sup>2</sup>), with terms equal to k, since for every robot added, it cannot go to the same place another robot has been inserted. Looking at the upper bound, however, we can simplify this to O(n<sup>2k</sup>).
+
+c) Walls can be collided with in 0-4 directions, 0 if it is in a corner, 1 if it is along the edge, and 2-4 everywhere else. I'll simplify this to 2 on average in order to get a very rough approximation. This is assuming that a wall square can be anywhere, rather than just on the edge, in which case there would be just k(w - 4) collisions possible. With w different walls, and n much greater than k, there would be a different state for every robot crashing into each wall. For each of these collision states, there are about n<sup>2k</sup> states when considering the rest of the robots, as shown above. Thus, we get a total of 2wn<sup>2k</sup> collision states.
+
+d) A straightforward breadth-first search would likely not be computationally feasible in a maze with large n and a muber of robots.Breadth-first search would be essentially exploring just about every node for not just one robot but for each. Experimentally, we can see this in effect when running a much more efficient A* search on a 40x40 maze with only 3 robots; the number of states just grows exponentially, with 16 million not even being enough to reach a solution. BFS will probably look at most, if not all, of these nodes when searching for a solution, so long as the path isn't very specifically easy, and n<sup>2k</sup> is not a number of states that can be explored in reasonable time.
+
+e) Manhattan distance is a useful, monotonic heuristic for this maze space. This is because in a space without any movement besides the compass directions, Manhattan distance is always the shortest distance to a goal. Thus, the Manhattan distance from a state can never be greater than the Manhattan distance from a neighbor state plus the distance to that state. It costs only 1 unit of fuel to move to a neighbor state, but if that state is closer to the goal, its heuristic is necessarily also exactly 1 closer to the goal, so both sides of the monotonicity equation are equal. If the neighboring state is not closer to the goal, than its heuristic will be larger or equal to the heuristic of the current state, so the heuristic of the current state will be less than or equal to the sum of the heuristic of the neighbor state and the cost to get there.
+
+f) 
