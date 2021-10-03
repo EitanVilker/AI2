@@ -1,4 +1,7 @@
+# Author: Eitan Vilker
+
 from SearchSolution import SearchSolution
+from priority_queue import PriorityQueue
 from heapq import heappush, heappop
 
 class AstarNode:
@@ -37,10 +40,11 @@ def backchain(node):
 
 
 def astar_search(search_problem, heuristic_fn):
+    
     # I'll get you started:
     start_node = AstarNode(search_problem.start_state, heuristic_fn(search_problem.start_state))
-    pqueue = []
-    heappush(pqueue, start_node)
+    pqueue = PriorityQueue()
+    pqueue.push(start_node, priority=start_node.priority())
 
     solution = SearchSolution(search_problem, "Astar with heuristic " + heuristic_fn.__name__)
 
@@ -49,27 +53,38 @@ def astar_search(search_problem, heuristic_fn):
 
     # you write the rest:
 
-    actions = ["Pass, North, West, South, East"]
-
+    actions = search_problem.actions
     while len(pqueue) > 0:
 
-        current_node = heappop(pqueue)
+        if len(visited_cost) % 10000 == 0:
+            print("Current nodes visited: " + str(len(visited_cost)))
+
+        current_node = pqueue.pop()
 
         # Base case - Goal reached
-        if search_problem.goal == current_node.state[1:]:
-            return current_node
+        if search_problem.is_goal_reached(current_node):
+            solution.nodes_visited = len(visited_cost)
+            solution.path = backchain(current_node)
+            solution.cost = current_node.transition_cost
+            return solution
 
         successors = search_problem.get_successors(current_node.state)
-        next_node_cost = current_node.transition_cost + 1
+        next_node_cost = current_node.transition_cost
 
         # For each possible next state
         for successor in successors:
+            # Give cost of 0 if no movement, 1 otherwise
+            if successor == current_node.state:
+                next_node_cost = current_node.transition_cost
+            else:
+                next_node_cost = current_node.transition_cost + 1
+
             move_heuristic = heuristic_fn(successor)
             
-            # Check if node has been looked at or has a better cost
+            # Check if node has not been looked at or has a better cost
             next_node = AstarNode(successor, move_heuristic, transition_cost=next_node_cost, parent=current_node)
-            if successor not in search_problem.visited_states or next_node.transition_cost < visited_cost[successor]:
+            if successor not in visited_cost or next_node.transition_cost < visited_cost[successor]:
+                # Package node and push to priority queue
                 next_node.parent = current_node
-                search_problem.visited_states[successor] = next_node
                 visited_cost[successor] = next_node_cost
-                heappush(pqueue, next_node)
+                pqueue.push(next_node, priority=next_node.priority())

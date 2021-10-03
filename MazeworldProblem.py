@@ -1,5 +1,8 @@
+# Author: Eitan Vilker
+
 from Maze import Maze
 from time import sleep
+from math import sqrt
 
 class MazeworldProblem:
 
@@ -8,7 +11,6 @@ class MazeworldProblem:
     def __init__(self, maze, goal_locations):
         self.maze = maze
         self.goal = goal_locations
-        self.visited_states = {}
         self.robot_count = len(goal_locations) // 2
         self.actions = ["Pass", "North", "West", "South", "East"]
         self.start_state = [0]
@@ -27,13 +29,21 @@ class MazeworldProblem:
         # given a sequence of states (including robot turn), modify the maze and print it out.
         #  (Be careful, this does modify the maze!)
 
+    # Measures combined Manhattan distance to goal of each robot
     def manhattan_heuristic(self, state):
-
         total_distance = 0
-        for i in range((int(len(state) - 1) / 2)):
-            total_distance += abs(state[i * 2 + 1] - goal[i * 2])
-            total_distance += abs(state[i * 2 + 2] - goal[i * 2 + 1])
+        for i in range((len(state) - 1) // 2):
+            total_distance += abs(state[i * 2 + 1] - self.goal[i * 2])
+            total_distance += abs(state[i * 2 + 2] - self.goal[i * 2 + 1])
         return total_distance
+
+    # Measures combined Euclidean distance to goal of each robot
+    def euclidean_heuristic(self, state):
+        total_distance = 0
+        for i in range((len(state) - 1) // 2):
+            total_distance += sqrt((state[i * 2 + 1] - self.goal[i * 2])**2 + (state[i * 2 + 2] - self.goal[i * 2 + 1])**2)
+        return total_distance
+
 
 
     def animate_path(self, path):
@@ -52,8 +62,6 @@ class MazeworldProblem:
         robot_states = []
         for i in range(self.robot_count):
             robot_states.append([state[1 + 2 * i], state[2 + 2 * i]])
-        print("State: ")
-        print(state)
         x = state[state[0] * 2 + 1]
         y = state[state[0] * 2 + 2]
         if action == "North":
@@ -81,11 +89,15 @@ class MazeworldProblem:
                 successors.append(move)
         return tuple(successors)
 
+    def is_goal_reached(self, current_node):
+        if self.goal == current_node.state[1:]:
+            return True
+
 
 ## A bit of test code. You might want to add to it to verify that things
 #  work as expected.
 
 if __name__ == "__main__":
-    test_maze3 = Maze("maze3.maz")
-    test_mp = MazeworldProblem(test_maze3, (1, 4, 1, 3, 1, 2))
-    print(test_mp.get_successors((0, 1, 0, 1, 2, 2, 1), self.actions))
+    test_maze2 = Maze("maze2.maz")
+    test_mp = SensorlessProblem(test_maze2, (3, 0))
+    print(test_mp.get_successors((0, 1, 0, 1, 2, 2, 1)))
